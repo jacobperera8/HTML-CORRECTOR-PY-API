@@ -3,22 +3,24 @@ from io import StringIO
 from flask import Flask, jsonify, make_response, request
 import boto3
 import pandas as pd
-from flask import Flask, jsonify, make_response
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello_from_root():
-    return jsonify(message='Hello from root!')
+
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=3000, debug=True)
+
+# @app.route("/")
+# def hello_from_root():
+#     return jsonify(message='Hello from root!')
+#
+#
+# @app.route("/hello")
+# def hello():
+#     return jsonify(message='Hello from path!')
 
 
-@app.route("/hello")
-def hello():
-    return jsonify(message='Hello from path!')
-
-
-app = Flask(__name__)
-
+# app = Flask(__name__)
 
 @app.route("/")
 def hello_from_root():
@@ -36,7 +38,8 @@ def insert():
         url_key = request.get_json(silent=True)['urlKey']
         dir = request.get_json(silent=True)['dir']
         s3 = boto3.client('s3')
-        bucket_name = 'test-upload-bucket-devy'
+        # bucket_name = 'test-upload-bucket-devy'
+        bucket_name = 'html-corrector-bucket'
 
         object_key = url_key
         # object_key = 'unprocessed-data/2022-07-25T17:27:43.040Z-68bbf31f-f727-4746-93b8-1b3df1f39f6b/Dataset.xlsx'
@@ -50,7 +53,9 @@ def insert():
         df["CSS Class"].fillna('no-css-class', inplace=True)
         df.head(5)
 
-        # 'accent-color','align-content', 'align-items','align-self'	,'alignment-baseline', 'animation-direction','animation-fill-mode','animation-name',	'animation-play-state',	'animation-timing-function',	'app-region',	'appearance'
+        # 'accent-color','align-content', 'align-items','align-self'	,'alignment-baseline', 'animation-direction',
+        # 'animation-fill-mode','animation-name',	'animation-play-state',	'animation-timing-function',
+        # 'app-region',	'appearance'
         df.drop(
             ['accent-color', 'align-content', 'align-items', 'align-self', 'alignment-baseline', 'animation-direction',
              'animation-fill-mode', 'animation-name', 'animation-play-state', 'animation-timing-function', 'app-region',
@@ -178,13 +183,13 @@ def insert():
             g = '{0:x}'.format(int(+g))
             b = '{0:x}'.format(int(+b))
             a = '{0:x}'.format(int(round(+a * 255)))
-            if (len(r) == 1):
+            if len(r) == 1:
                 r = "0" + r
-            if (len(g) == 1):
+            if len(g) == 1:
                 r = "0" + g
-            if (len(b) == 1):
+            if len(b) == 1:
                 r = "0" + b
-            if (len(a) == 1):
+            if len(a) == 1:
                 r = "0" + a
             return int((r + g + b + a), 16)
 
@@ -192,9 +197,9 @@ def insert():
             output = []
             for column in colorColumnsArray:
                 chr = (df.loc[x, column][df.loc[x, column].find('(') + 1: df.loc[x, column].find(')')]).split(', ')
-                if (len(chr) == 3):
+                if len(chr) == 3:
                     output.append(rgb_int(int(chr[0]), int(chr[1]), int(chr[2])))
-                if (len(chr) == 4):
+                if len(chr) == 4:
                     output.append(rgba_int(int(chr[0]), int(chr[1]), int(chr[2]), float(chr[3])))
             return output
 
@@ -219,7 +224,7 @@ def insert():
             output = []
             for column in columnsWithPX:
                 numeric_string = "".join(filter(str.isdigit, df.loc[x, column]))
-                if (numeric_string.isnumeric()):
+                if numeric_string.isnumeric():
                     output.append(int(numeric_string))
                 else:
                     output.append(numeric_string)
@@ -257,7 +262,7 @@ def insert():
             output = []
             for column in columnsWithPX:
                 numeric_string = "".join(filter(str.isdigit, df.loc[x, column]))
-                if (numeric_string.isnumeric()):
+                if numeric_string.isnumeric():
                     output.append(int(numeric_string))
                 else:
                     print("error incompatible values", numeric_string)
@@ -293,9 +298,9 @@ def insert():
         def remove_px_auto_normal(x, columns):
             output = []
             for column in columns:
-                if (df.loc[x, column] == 'auto'):
+                if df.loc[x, column] == 'auto':
                     output.append(-1)
-                elif (df.loc[x, column] == 'normal'):
+                elif df.loc[x, column] == 'normal':
                     output.append(-2)
                 else:
                     output.append(float(df.loc[x, column].replace("px", "")))
@@ -318,9 +323,9 @@ def insert():
         def remove_percentage_auto_normal(x, columns):
             output = []
             for column in columns:
-                if (df.loc[x, column] == 'auto'):
+                if df.loc[x, column] == 'auto':
                     output.append(-1)
-                elif (df.loc[x, column] == 'normal'):
+                elif df.loc[x, column] == 'normal':
                     output.append(-2)
                 else:
                     output.append(int(df.loc[x, column].replace("%", "")))
@@ -352,12 +357,12 @@ def insert():
         def create_2_columns_from_2_percentages_or_2_px_values(x, columns):
             for column in columns:
                 list = df.loc[x, column].split(' ')
-                if (list[0][-1] == 'x'):
+                if list[0][-1] == 'x':
                     val_1 = float(list[0].replace("px", ""))
                     val_2 = float(list[1].replace("px", ""))
                     df.loc[x, (column + "-1")] = val_1
                     df.loc[x, (column + "-2")] = val_2
-                if (list[0][-1] == '%'):
+                if list[0][-1] == '%':
                     val_1 = float(list[0].replace("%", ""))
                     val_2 = float(list[1].replace("%", ""))
                     df.loc[x, (column + "-1")] = val_1
@@ -370,7 +375,7 @@ def insert():
 
         # Remove unwanted columns
 
-        df.drop(["perspective-origin", "transform-origin"], axis = 1, inplace = True)
+        df.drop(["perspective-origin", "transform-origin"], axis=1, inplace=True)
 
         # Preprocessing box shadow column (rgba(0, 0, 0, 0.298) 0px 0px 3px 0px) or none
 
@@ -378,7 +383,7 @@ def insert():
 
         def preprocess_rgba_with_4_px_values(x, colorColumnsArray):
             for column in colorColumnsArray:
-                if (df.loc[x, column] == 'none'):
+                if df.loc[x, column] == 'none':
                     df.loc[x, column] = -1
                     df.loc[x, (column + "-rgba-color")] = -1
                     df.loc[x, (column + "-px-1")] = -1
@@ -387,7 +392,7 @@ def insert():
                     df.loc[x, (column + "-px-4")] = -1
                 else:
                     rgba_values = (
-                    df.loc[x, column][df.loc[x, column].find('(') + 1: df.loc[x, column].find(')')]).split(', ')
+                        df.loc[x, column][df.loc[x, column].find('(') + 1: df.loc[x, column].find(')')]).split(', ')
                     rgba_value_decimal = rgba_int(int(rgba_values[0]), int(rgba_values[1]), int(rgba_values[2]),
                                                   float(rgba_values[3]))
                     df.loc[x, (column + "-rgba-color")] = rgba_value_decimal
@@ -406,8 +411,6 @@ def insert():
 
         # for x in df.index:
         #   preprocess_rgba_with_4_px_values(x, ["box-shadow"])
-
-
 
         return jsonify(message='completed preprocessing the dataset!', urlKey=url_key, s3Dir=dir)
 
